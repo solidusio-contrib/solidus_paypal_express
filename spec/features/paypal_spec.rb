@@ -14,6 +14,7 @@ describe "PayPal", :js => true do
   end
 
   def fill_in_billing
+    fill_in "Customer E-Mail", with: "test@example.com"
     within("#billing") do
       fill_in "First Name", :with => "Test"
       fill_in "Last Name", :with => "User"
@@ -284,10 +285,6 @@ describe "PayPal", :js => true do
       click_link 'iPad'
       click_button 'Add To Cart'
       click_button 'Checkout'
-      within("#guest_checkout") do
-        fill_in "Email", :with => "test@example.com"
-        click_button 'Continue'
-      end
       fill_in_billing
       click_button "Save and Continue"
       # Delivery step doesn't require any action

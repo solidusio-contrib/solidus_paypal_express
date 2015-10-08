@@ -22,18 +22,24 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.requirements << 'none'
 
-  s.add_dependency "solidus"
+  s.add_dependency "solidus_core", "~> 1.0"
   s.add_dependency 'paypal-sdk-merchant', '1.106.1'
 
-  s.add_development_dependency 'capybara', '~> 2.1'
+  s.add_development_dependency "solidus", "~> 1.0"
+  s.add_development_dependency "solidus_auth_devise", "~> 1.2"
+  s.add_development_dependency "solidus_sample", "~> 1.0"
+
   s.add_development_dependency 'coffee-rails'
+  s.add_development_dependency 'capybara', '~> 2.1'
   s.add_development_dependency 'database_cleaner', '1.0.1'
   s.add_development_dependency 'factory_girl', '~> 4.2'
   s.add_development_dependency 'ffaker'
   s.add_development_dependency 'rspec-rails',  '~> 2.14.0'
-  s.add_development_dependency 'rspec-rerun'
   s.add_development_dependency 'sass-rails', '~> 4.0.2'
   s.add_development_dependency 'selenium-webdriver'
   s.add_development_dependency 'simplecov'
-  s.add_development_dependency 'pry'
+  s.add_development_dependency 'simplecov-rcov'
+  s.add_development_dependency 'better_errors'
+  s.add_development_dependency 'binding_of_caller'
+  s.add_development_dependency 'pry-rails'
 end
