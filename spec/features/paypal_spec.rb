@@ -37,10 +37,11 @@ describe "PayPal", :js => true do
   end
 
   def login_to_paypal
-    within("#loginForm") do
-      fill_in "Email", :with => "pp@spreecommerce.com"
-      fill_in "Password", :with => "thequickbrownfox"
-      click_button "Log in to PayPal"
+    iframe = find('iframe[name="injectedUl"]')
+    within_frame(iframe) do
+      fill_in "Email", with: "pp@spreecommerce.com"
+      fill_in "Password", with: "thequickbrownfox"
+      click_button "Log In"
     end
   end
 
@@ -49,25 +50,26 @@ describe "PayPal", :js => true do
     within(".transctionCartDetails") { block.call }
   end
 
-  xit "pays for an order successfully" do
+  it "pays for an order successfully" do
     visit spree.root_path
     click_link 'iPad'
     click_button 'Add To Cart'
     click_button 'Checkout'
-    within("#guest_checkout") do
-      fill_in "Email", :with => "test@example.com"
-      click_button 'Continue'
-    end
+
     fill_in_billing
     click_button "Save and Continue"
     # Delivery step doesn't require any action
     click_button "Save and Continue"
     find("#paypal_button").click
-    switch_to_paypal_login
-    login_to_paypal
-    click_button "Pay Now"
-    page.should have_content("Your order has been processed successfully")
 
+    login_to_paypal
+
+    has_selector?(".preloader .spinner", visible: false)
+    click_button "Pay Now"
+
+    click_button "Place Order"
+
+    save_and_open_screenshot
     Spree::Payment.last.source.transaction_id.should_not be_blank
   end
 
