@@ -1,6 +1,9 @@
 if ENV["COVERAGE"]
-  require_relative 'rcov_exclude_list.rb'
-  exlist = Dir.glob(@exclude_list)
+  exlist = Dir.glob([
+    'db/**/*.rb',
+    'spec/**/*.rb'
+  ])
+
   require 'simplecov'
   require 'simplecov-rcov'
   SimpleCov.formatter = SimpleCov::Formatter::RcovFormatter
