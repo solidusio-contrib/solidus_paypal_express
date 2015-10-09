@@ -1,5 +1,6 @@
-describe Spree::PaypalController do
+require "spec_helper"
 
+describe Spree::PaypalController do
   # Regression tests for #55
   context "when current_order is nil" do
     before do
