@@ -1,32 +1,36 @@
 require "spec_helper"
 
 describe Spree::PaypalController do
-  # Regression tests for #55
-  context "when current_order is nil" do
-    before do
-      controller.stub :current_order => nil
-      controller.stub :current_spree_user => nil
-    end
+  routes { Spree::Core::Engine.routes }
 
-    context "express" do
+  shared_context "current order is nil" do
+    # Regression tests for #55
+    context "when current_order is nil" do
+      before do
+        allow(controller).to receive(:current_order).
+          and_return(nil)
+        allow(controller).to receive(:current_spree_user).
+          and_return(nil)
+      end
+
       it "raises ActiveRecord::RecordNotFound" do
-        expect(lambda { get :express, :use_route => :spree }).
-          to raise_error(ActiveRecord::RecordNotFound)
+        expect{ subject }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
+  end
 
-    context "confirm" do
-      it "raises ActiveRecord::RecordNotFound" do
-        expect(lambda { get :confirm, :use_route => :spree }).
-          to raise_error(ActiveRecord::RecordNotFound)
-      end
-    end
+  describe "GET express" do
+    subject { get :express }
+    include_context "current order is nil"
+  end
 
-    context "cancel" do
-      it "raises ActiveRecord::RecordNotFound" do
-        expect(lambda { get :cancel, :use_route => :spree }).
-          to raise_error(ActiveRecord::RecordNotFound)
-      end
-    end
+  describe "GET confirm" do
+    subject { get :confirm }
+    include_context "current order is nil"
+  end
+
+  describe "GET cancel" do
+    subject { get :cancel }
+    include_context "current order is nil"
   end
 end
