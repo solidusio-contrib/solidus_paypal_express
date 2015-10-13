@@ -3,12 +3,12 @@ describe "PayPal", :js => true do
 
   before do
     @gateway = Spree::Gateway::PayPalExpress.create!({
-      :preferred_login => "pp_api1.ryanbigg.com",
-      :preferred_password => "1383066713",
-      :preferred_signature => "An5ns1Kso7MWUdW4ErQKJJJ4qi4-Ar-LpzhMJL0cu8TjM8Z2e1ykVg5B",
-      :name => "PayPal",
-      :active => true,
-      :environment => Rails.env
+      preferred_login: "solidus-buyer_api1.example.com",
+      preferred_password: "57YMDWBYCDGS53QB",
+      preferred_signature: "AFcWxV21C7fd0v3bYYYRCpSSRl31AFPx.K2zvoXaQZLBnjHSCn0U9epw",
+      name: "PayPal",
+      active: true,
+      environment: Rails.env
     })
     FactoryGirl.create(:shipping_method)
   end
@@ -39,8 +39,8 @@ describe "PayPal", :js => true do
   def login_to_paypal
     iframe = find('iframe[name="injectedUl"]')
     within_frame(iframe) do
-      fill_in "Email", with: "pp@spreecommerce.com"
-      fill_in "Password", with: "thequickbrownfox"
+      fill_in "Email", with: "solidus-test@example.com"
+      fill_in "Password", with: "spree1234"
       click_button "Log In"
     end
   end
@@ -65,7 +65,7 @@ describe "PayPal", :js => true do
     login_to_paypal
 
     has_selector?(".preloader .spinner", visible: false)
-    click_button "Pay Now"
+    click_button "Pay Now", match: :first
 
     click_button "Place Order"
 
