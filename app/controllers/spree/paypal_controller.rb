@@ -1,5 +1,7 @@
 module Spree
   class PaypalController < StoreController
+    # This is the entry point for after being redirected from the cart
+    # payment page.
     def express
       order = current_order || raise(ActiveRecord::RecordNotFound)
       items = order.line_items.map(&method(:line_item))
@@ -44,6 +46,8 @@ module Spree
       end
     end
 
+    # This is the entry point for PayPal after the user has completed payment
+    # on the hosted payment page within PayPal's domain.
     def confirm
       order = current_order || raise(ActiveRecord::RecordNotFound)
       order.payments.create!(
