@@ -7,40 +7,6 @@ describe "PayPal", js: true do
     expire_cookies
   end
 
-  def fill_in_billing
-    fill_in "Customer E-Mail", with: "solidus-test@example.com"
-    within("#billing") do
-      fill_in "First Name", with: "Test"
-      fill_in "Last Name", with: "User"
-      fill_in "Street Address", with: "1 User Lane"
-      # City, State and ZIP must all match for PayPal to be happy
-      fill_in "City", with: "Adamsville"
-      select "United States of America", from: "order_bill_address_attributes_country_id"
-      select "Alabama", from: "order_bill_address_attributes_state_id"
-      fill_in "Zip", with: "35005"
-      fill_in "Phone", with: "555-123-4567"
-    end
-  end
-
-  def switch_to_paypal_login
-    # If you go through a payment once in the sandbox, it remembers your preferred setting.
-    # It defaults to the *wrong* setting for the first time, so we need to have this method.
-    unless page.has_selector?("#login #email")
-      find("#loadLogin").click
-    end
-  end
-
-  def login_to_paypal
-    fill_in "Email", with: "solidus-test@example.com"
-    fill_in "Password", with: "spree1234"
-    click_button "Log in to PayPal"
-  end
-
-  def within_transaction_cart(&block)
-    find(".transactionDetails").click
-    within(".transctionCartDetails") { block.call }
-  end
-
   it "pays for an order successfully" do
     visit spree.root_path
     click_link 'iPad'
@@ -354,5 +320,39 @@ describe "PayPal", js: true do
         page.should have_content("PayPal refund unsuccessful (The partial refund amount is not valid)")
       end
     end
+  end
+
+  def fill_in_billing
+    fill_in "Customer E-Mail", with: "solidus-test@example.com"
+    within("#billing") do
+      fill_in "First Name", with: "Test"
+      fill_in "Last Name", with: "User"
+      fill_in "Street Address", with: "1 User Lane"
+      # City, State and ZIP must all match for PayPal to be happy
+      fill_in "City", with: "Adamsville"
+      select "United States of America", from: "order_bill_address_attributes_country_id"
+      select "Alabama", from: "order_bill_address_attributes_state_id"
+      fill_in "Zip", with: "35005"
+      fill_in "Phone", with: "555-123-4567"
+    end
+  end
+
+  def switch_to_paypal_login
+    # If you go through a payment once in the sandbox, it remembers your preferred setting.
+    # It defaults to the *wrong* setting for the first time, so we need to have this method.
+    unless page.has_selector?("#login #email")
+      find("#loadLogin").click
+    end
+  end
+
+  def login_to_paypal
+    fill_in "Email", with: "solidus-test@example.com"
+    fill_in "Password", with: "spree1234"
+    click_button "Log in to PayPal"
+  end
+
+  def within_transaction_cart(&block)
+    find(".transactionDetails").click
+    within(".transctionCartDetails") { block.call }
   end
 end
