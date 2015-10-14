@@ -1,6 +1,7 @@
 require 'paypal-sdk-merchant'
 module Spree
   class Gateway::PayPalExpress < Gateway
+    preference :use_new_layout, :boolean, default: true
     preference :login, :string
     preference :password, :string
     preference :signature, :string
@@ -99,8 +100,23 @@ module Spree
       end
       refund_transaction_response
     end
+
+    def server_domain
+      self.preferred_server == "live" ?  "" : "sandbox."
+    end
+
+    def express_checkout_url(pp_response, extra_params={})
+      params = {
+        token: pp_response.Token
+      }.merge(extra_params)
+
+      if self.preferred_use_new_layout
+        "https://www.#{server_domain}paypal.com/checkoutnow/2?"
+      else
+        "https://www.#{server_domain}paypal.com/cgi-bin/webscr?" +
+          "cmd=_express-checkout&force_sa=true&"
+      end +
+      encode_www_form(params)
+    end
   end
 end
-
-#   payment.state = 'completed'
-#   current_order.state = 'complete'
