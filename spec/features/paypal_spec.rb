@@ -1,11 +1,13 @@
-describe "PayPal", js: true do
+describe "PayPal", js: true, type: :feature do
   let!(:product) { FactoryGirl.create(:product, name: 'iPad') }
   let!(:gateway) { create(:spree_gateway_pay_pal_express) }
   let!(:shipping_method) { create(:shipping_method) }
+  let(:new_payment) { Spree::Payment.last }
+  let(:new_order) { Spree::Order.last }
 
   before { expire_cookies }
 
-  it "pays for an order successfully" do
+  it "Completes an order with PayPal Express" do
     visit spree.root_path
     click_link 'iPad'
     click_button 'Add To Cart'
@@ -22,9 +24,15 @@ describe "PayPal", js: true do
     has_selector?(".preloader .spinner", visible: false)
     click_button "Pay Now", match: :first
 
-    click_button "Place Order"
+    expect {
+      click_button "Place Order"
+    }.to change {
+      Spree::Payment.count
+    }.by(1)
 
-    Spree::Payment.last.source.transaction_id.should_not be_blank
+    expect(new_order).to be_complete
+    expect(new_payment.transaction_id).to_not be_blank
+    expect(new_payment).to be_pending
   end
 
   context "with 'Sole' solution type" do

@@ -28,51 +28,30 @@ module Spree
     end
 
     def auto_capture?
-      true
+      false
     end
 
     def method_type
       'paypal'
     end
 
-    def purchase(amount, express_checkout, gateway_options={})
-      pp_details_request = provider.build_get_express_checkout_details(
-        {
-          Token: express_checkout.token
-        }
-      )
-      pp_details_response = provider.get_express_checkout_details(pp_details_request)
+    # amount :: float
+    # express_checkout :: Spree::PaypalExpressCheckout
+    # gateway_options :: hash
+    def authorize(amount, express_checkout, gateway_options={})
+      response =
+        convert_to_active_merchant_response(
+        paypal_auth(express_checkout.token, express_checkout.payer_id))
 
-      pp_request = provider.build_do_express_checkout_payment(
-        {
-          DoExpressCheckoutPaymentRequestDetails: {
-            PaymentAction: "Sale",
-            Token: express_checkout.token,
-            PayerID: express_checkout.payer_id,
-            PaymentDetails: pp_details_response.get_express_checkout_details_response_details.PaymentDetails
-          }
-        }
-      )
+      # TODO don't do this, use authorization instead
+      # this is a hold over from old code.
+      express_checkout.update transaction_id: response.authorization
 
-      pp_response = provider.do_express_checkout_payment(pp_request)
-      if pp_response.success?
-        # We need to store the transaction id for the future.
-        # This is mainly so we can use it later on to refund the payment if the user wishes.
-        transaction_id = pp_response.do_express_checkout_payment_response_details.payment_info.first.transaction_id
-        express_checkout.update_column(:transaction_id, transaction_id)
-        # This is rather hackish, required for payment/processing handle_response code.
-        Class.new do
-          def success?; true; end
-          def authorization; nil; end
-        end.new
-      else
-        class << pp_response
-          def to_s
-            errors.map(&:long_message).join(" ")
-          end
-        end
-        pp_response
-      end
+      response
+    end
+
+    def capture(amount, express_checkout, gateway_options={})
+      raise NotImplementedError
     end
 
     def refund(payment, amount)
@@ -121,6 +100,75 @@ module Spree
           "cmd=_express-checkout&force_sa=true&"
       end +
       encode_www_form(params)
+    end
+
+    # response ::
+    #   PayPal::SDK::Merchant::DataTypes::DoExpressCheckoutPaymentResponseType
+    def transaction_id(response)
+      response.
+        do_express_checkout_payment_response_details.
+        payment_info.
+        first.
+        transaction_id
+    end
+
+    # response ::
+    #   PayPal::SDK::Merchant::DataTypes::DoExpressCheckoutPaymentResponseType
+    def convert_to_active_merchant_response(response)
+      message =
+        response.
+        errors.
+        map(&:long_message).
+        join(" ")
+
+      ActiveMerchant::Billing::Response.new(
+        response.success?,
+        message,
+        {},
+        {authorization: transaction_id(response)})
+    end
+
+    def paypal_auth(token, payer_id)
+      self.
+        provider.
+        do_express_checkout_payment(
+          checkout_payment_params(token, payer_id))
+    end
+
+    def payment_details(token)
+      self.
+        provider.
+        get_express_checkout_details(
+          checkout_details_params(token)).
+        get_express_checkout_details_response_details.
+        PaymentDetails
+    end
+
+    def checkout_payment_params(token, payer_id)
+      self.
+        provider.
+        build_do_express_checkout_payment(
+          build_checkout_payment_params(
+            token,
+            payer_id,
+            payment_details(token)))
+    end
+
+    def checkout_details_params(token)
+      self.
+        provider.
+        build_get_express_checkout_details(Token: token)
+    end
+
+    def build_checkout_payment_params(token, payer_id, payment_details)
+      {
+        DoExpressCheckoutPaymentRequestDetails: {
+          PaymentAction: "Authorization",
+          Token: token,
+          PayerID: payer_id,
+          PaymentDetails: payment_details
+        }
+      }
     end
   end
 end
