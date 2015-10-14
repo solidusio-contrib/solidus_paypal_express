@@ -60,7 +60,6 @@ describe "PayPal", js: true do
 
     click_button "Place Order"
 
-    save_and_open_screenshot
     Spree::Payment.last.source.transaction_id.should_not be_blank
   end
 
