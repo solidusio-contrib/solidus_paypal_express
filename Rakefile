@@ -23,7 +23,7 @@ task :coverage do
   ENV['COVERAGE'] = 'true'
   Rake::Task["spec"].execute
 end
-task :default => 'rspec'
+task default: 'rspec'
 
 
 Bundler::GemHelper.install_tasks

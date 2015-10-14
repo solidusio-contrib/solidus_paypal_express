@@ -1,5 +1,5 @@
-describe "PayPal", :js => true do
-  let!(:product) { FactoryGirl.create(:product, :name => 'iPad') }
+describe "PayPal", js: true do
+  let!(:product) { FactoryGirl.create(:product, name: 'iPad') }
 
   before do
     @gateway = create(:spree_gateway_pay_pal_express)
@@ -10,15 +10,15 @@ describe "PayPal", :js => true do
   def fill_in_billing
     fill_in "Customer E-Mail", with: "solidus-test@example.com"
     within("#billing") do
-      fill_in "First Name", :with => "Test"
-      fill_in "Last Name", :with => "User"
-      fill_in "Street Address", :with => "1 User Lane"
+      fill_in "First Name", with: "Test"
+      fill_in "Last Name", with: "User"
+      fill_in "Street Address", with: "1 User Lane"
       # City, State and ZIP must all match for PayPal to be happy
-      fill_in "City", :with => "Adamsville"
-      select "United States of America", :from => "order_bill_address_attributes_country_id"
-      select "Alabama", :from => "order_bill_address_attributes_state_id"
-      fill_in "Zip", :with => "35005"
-      fill_in "Phone", :with => "555-123-4567"
+      fill_in "City", with: "Adamsville"
+      select "United States of America", from: "order_bill_address_attributes_country_id"
+      select "Alabama", from: "order_bill_address_attributes_state_id"
+      fill_in "Zip", with: "35005"
+      fill_in "Phone", with: "555-123-4567"
     end
   end
 
@@ -75,7 +75,7 @@ describe "PayPal", :js => true do
       click_button 'Add To Cart'
       click_button 'Checkout'
       within("#guest_checkout") do
-        fill_in "Email", :with => "test@example.com"
+        fill_in "Email", with: "test@example.com"
         click_button 'Continue'
       end
       fill_in_billing
@@ -101,8 +101,8 @@ describe "PayPal", :js => true do
     click_button 'Add To Cart'
     # TODO: Is there a better way to find this current order?
     order = Spree::Order.last
-    order.adjustments.create!(:amount => -5, :label => "$5 off")
-    order.adjustments.create!(:amount => 10, :label => "$10 on")
+    order.adjustments.create!(amount: -5, label: "$5 off")
+    order.adjustments.create!(amount: 10, label: "$10 on")
     visit '/cart'
     within("#cart_adjustments") do
       page.should have_content("$5 off")
@@ -110,7 +110,7 @@ describe "PayPal", :js => true do
     end
     click_button 'Checkout'
     within("#guest_checkout") do
-      fill_in "Email", :with => "test@example.com"
+      fill_in "Email", with: "test@example.com"
       click_button 'Continue'
     end
     fill_in_billing
@@ -143,7 +143,7 @@ describe "PayPal", :js => true do
     let(:promotion) { Spree::Promotion.create(name: "10% off") }
     before do
       calculator = Spree::Calculator::FlatPercentItemTotal.new(preferred_flat_percent: 10)
-      action = Spree::Promotion::Actions::CreateItemAdjustments.create(:calculator => calculator)
+      action = Spree::Promotion::Actions::CreateItemAdjustments.create(calculator: calculator)
       promotion.actions << action
     end
 
@@ -161,7 +161,7 @@ describe "PayPal", :js => true do
       end
       click_button 'Checkout'
       within("#guest_checkout") do
-        fill_in "Email", :with => "test@example.com"
+        fill_in "Email", with: "test@example.com"
         click_button 'Continue'
       end
       fill_in_billing
@@ -185,7 +185,7 @@ describe "PayPal", :js => true do
 
   # Regression test for #10
   context "will skip $0 items" do
-    let!(:product2) { FactoryGirl.create(:product, :name => 'iPod') }
+    let!(:product2) { FactoryGirl.create(:product, name: 'iPod') }
 
     xit do
       visit spree.root_path
@@ -201,7 +201,7 @@ describe "PayPal", :js => true do
       order.line_items.last.update_attribute(:price, 0)
       click_button 'Checkout'
       within("#guest_checkout") do
-        fill_in "Email", :with => "test@example.com"
+        fill_in "Email", with: "test@example.com"
         click_button 'Continue'
       end
       fill_in_billing
@@ -245,10 +245,10 @@ describe "PayPal", :js => true do
       click_button 'Add To Cart'
       # TODO: Is there a better way to find this current order?
       order = Spree::Order.last
-      order.adjustments.create!(:amount => -order.line_items.last.price, :label => "FREE iPad ZOMG!")
+      order.adjustments.create!(amount: -order.line_items.last.price, label: "FREE iPad ZOMG!")
       click_button 'Checkout'
       within("#guest_checkout") do
-        fill_in "Email", :with => "test@example.com"
+        fill_in "Email", with: "test@example.com"
         click_button 'Continue'
       end
       fill_in_billing
@@ -297,7 +297,7 @@ describe "PayPal", :js => true do
         click_button 'Add To Cart'
         click_button 'Checkout'
         within("#guest_checkout") do
-          fill_in "Email", :with => "test@example.com"
+          fill_in "Email", with: "test@example.com"
           click_button 'Continue'
         end
         fill_in_billing
@@ -337,7 +337,7 @@ describe "PayPal", :js => true do
       xit "can refund payments partially" do
         payment = Spree::Payment.last
         # Take a dollar off, which should cause refund type to be...
-        fill_in "Amount", :with => payment.amount - 1
+        fill_in "Amount", with: payment.amount - 1
         click_button "Refund"
         page.should have_content("PayPal refund successful")
 
@@ -350,7 +350,7 @@ describe "PayPal", :js => true do
       end
 
       xit "errors when given an invalid refund amount" do
-        fill_in "Amount", :with => "lol"
+        fill_in "Amount", with: "lol"
         click_button "Refund"
         page.should have_content("PayPal refund unsuccessful (The partial refund amount is not valid)")
       end

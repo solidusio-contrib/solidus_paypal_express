@@ -11,11 +11,11 @@ module Spree
       additional_adjustments.eligible.each do |adjustment|
         next if (tax_adjustments + shipping_adjustments).include?(adjustment)
         items << {
-          :Name => adjustment.label,
-          :Quantity => 1,
-          :Amount => {
-            :currencyID => order.currency,
-            :value => adjustment.amount
+          Name: adjustment.label,
+          Quantity: 1,
+          Amount: {
+            currencyID: order.currency,
+            value: adjustment.amount
           }
         }
       end
@@ -35,25 +35,29 @@ module Spree
           redirect_to payment_method.
             express_checkout_url(pp_response, useraction: 'commit')
         else
-          flash[:error] = Spree.t('flash.generic_error', :scope => 'paypal', :reasons => pp_response.errors.map(&:long_message).join(" "))
+          flash[:error] = Spree.t('flash.generic_error', scope: 'paypal', reasons: pp_response.errors.map(&:long_message).join(" "))
           redirect_to checkout_state_path(:payment)
         end
       rescue SocketError
-        flash[:error] = Spree.t('flash.connection_failed', :scope => 'paypal')
+        flash[:error] = Spree.t('flash.connection_failed', scope: 'paypal')
         redirect_to checkout_state_path(:payment)
       end
     end
 
     def confirm
       order = current_order || raise(ActiveRecord::RecordNotFound)
-      order.payments.create!({
-        :source => Spree::PaypalExpressCheckout.create({
-          :token => params[:token],
-          :payer_id => params[:PayerID]
-        }),
-        :amount => order.total,
-        :payment_method => payment_method
-      })
+      order.payments.create!(
+        {
+          source: Spree::PaypalExpressCheckout.create(
+            {
+              token: params[:token],
+              payer_id: params[:PayerID]
+            }
+          ),
+          amount: order.total,
+          payment_method: payment_method
+        }
+      )
       order.next
       if order.complete?
         flash.notice = Spree.t(:order_processed_successfully)
@@ -66,7 +70,7 @@ module Spree
     end
 
     def cancel
-      flash[:notice] = Spree.t('flash.cancel', :scope => 'paypal')
+      flash[:notice] = Spree.t('flash.cancel', scope: 'paypal')
       order = current_order || raise(ActiveRecord::RecordNotFound)
       redirect_to checkout_state_path(order.state, paypal_cancel_token: params[:token])
     end
@@ -75,28 +79,28 @@ module Spree
 
     def line_item(item)
       {
-          :Name => item.product.name,
-          :Number => item.variant.sku,
-          :Quantity => item.quantity,
-          :Amount => {
-              :currencyID => item.order.currency,
-              :value => item.price
-          },
-          :ItemCategory => "Physical"
+        Name: item.product.name,
+        Number: item.variant.sku,
+        Quantity: item.quantity,
+        Amount: {
+          currencyID: item.order.currency,
+          value: item.price
+        },
+        ItemCategory: "Physical"
       }
     end
 
     def express_checkout_request_details order, items
-      { :SetExpressCheckoutRequestDetails => {
-          :InvoiceID => order.number,
-          :BuyerEmail => order.email,
-          :ReturnURL => confirm_paypal_url(:payment_method_id => params[:payment_method_id], :utm_nooverride => 1),
-          :CancelURL =>  cancel_paypal_url,
-          :SolutionType => payment_method.preferred_solution.present? ? payment_method.preferred_solution : "Mark",
-          :LandingPage => payment_method.preferred_landing_page.present? ? payment_method.preferred_landing_page : "Billing",
-          :cppheaderimage => payment_method.preferred_logourl.present? ? payment_method.preferred_logourl : "",
-          :NoShipping => 1,
-          :PaymentDetails => [payment_details(items)]
+      { SetExpressCheckoutRequestDetails: {
+        InvoiceID: order.number,
+        BuyerEmail: order.email,
+        ReturnURL: confirm_paypal_url(payment_method_id: params[:payment_method_id], utm_nooverride: 1),
+        CancelURL: cancel_paypal_url,
+        SolutionType: payment_method.preferred_solution.present? ? payment_method.preferred_solution : "Mark",
+        LandingPage: payment_method.preferred_landing_page.present? ? payment_method.preferred_landing_page : "Billing",
+        cppheaderimage: payment_method.preferred_logourl.present? ? payment_method.preferred_logourl : "",
+        NoShipping: 1,
+        PaymentDetails: [payment_details(items)]
       }}
     end
 
@@ -122,33 +126,33 @@ module Spree
         # Paypal does not support no items or a zero dollar ItemTotal
         # This results in the order summary being simply "Current purchase"
         {
-          :OrderTotal => {
-            :currencyID => current_order.currency,
-            :value => current_order.total
+          OrderTotal: {
+            currencyID: current_order.currency,
+            value: current_order.total
           }
         }
       else
         {
-          :OrderTotal => {
-            :currencyID => current_order.currency,
-            :value => current_order.total
+          OrderTotal: {
+            currencyID: current_order.currency,
+            value: current_order.total
           },
-          :ItemTotal => {
-            :currencyID => current_order.currency,
-            :value => item_sum
+          ItemTotal: {
+            currencyID: current_order.currency,
+            value: item_sum
           },
-          :ShippingTotal => {
-            :currencyID => current_order.currency,
-            :value => shipment_sum,
+          ShippingTotal: {
+            currencyID: current_order.currency,
+            value: shipment_sum,
           },
-          :TaxTotal => {
-            :currencyID => current_order.currency,
-            :value => current_order.additional_tax_total
+          TaxTotal: {
+            currencyID: current_order.currency,
+            value: current_order.additional_tax_total
           },
-          :ShipToAddress => address_options,
-          :PaymentDetailsItem => items,
-          :ShippingMethod => "Shipping Method Name Goes Here",
-          :PaymentAction => "Sale"
+          ShipToAddress: address_options,
+          PaymentDetailsItem: items,
+          ShippingMethod: "Shipping Method Name Goes Here",
+          PaymentAction: "Sale"
         }
       end
     end
@@ -157,14 +161,14 @@ module Spree
       return {} unless address_required?
 
       {
-          :Name => current_order.bill_address.try(:full_name),
-          :Street1 => current_order.bill_address.address1,
-          :Street2 => current_order.bill_address.address2,
-          :CityName => current_order.bill_address.city,
-          :Phone => current_order.bill_address.phone,
-          :StateOrProvince => current_order.bill_address.state_text,
-          :Country => current_order.bill_address.country.iso,
-          :PostalCode => current_order.bill_address.zipcode
+        Name: current_order.bill_address.try(:full_name),
+        Street1: current_order.bill_address.address1,
+        Street2: current_order.bill_address.address2,
+        CityName: current_order.bill_address.city,
+        Phone: current_order.bill_address.phone,
+        StateOrProvince: current_order.bill_address.state_text,
+        Country: current_order.bill_address.country.iso,
+        PostalCode: current_order.bill_address.zipcode
       }
     end
 
