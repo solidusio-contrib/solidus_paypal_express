@@ -4,6 +4,7 @@ describe "PayPal", :js => true do
   before do
     @gateway = create(:spree_gateway_pay_pal_express)
     FactoryGirl.create(:shipping_method)
+    expire_cookies
   end
 
   def fill_in_billing

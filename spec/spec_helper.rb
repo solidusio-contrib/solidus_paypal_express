@@ -26,6 +26,7 @@ require 'pry'
 require 'capybara/rspec'
 require 'capybara/rails'
 require 'capybara-screenshot/rspec'
+require "show_me_the_cookies"
 
 # To stop these warnings:
 # WARN: tilt autoloading 'sass' in a non thread-safe way; explicit require 'sass' suggested.
@@ -53,6 +54,7 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
   config.include Spree::TestingSupport::UrlHelpers
   config.include Spree::TestingSupport::AuthorizationHelpers::Controller
+  config.include ShowMeTheCookies, type: :feature
 
   config.mock_with :rspec
   config.color = true
