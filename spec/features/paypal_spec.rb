@@ -1,11 +1,9 @@
 describe "PayPal", js: true do
   let!(:product) { FactoryGirl.create(:product, name: 'iPad') }
+  let!(:gateway) { create(:spree_gateway_pay_pal_express) }
+  let!(:shipping_method) { create(:shipping_method) }
 
-  before do
-    @gateway = create(:spree_gateway_pay_pal_express)
-    FactoryGirl.create(:shipping_method)
-    expire_cookies
-  end
+  before { expire_cookies }
 
   it "pays for an order successfully" do
     visit spree.root_path
@@ -31,7 +29,7 @@ describe "PayPal", js: true do
 
   context "with 'Sole' solution type" do
     before do
-      @gateway.preferred_solution = 'Sole'
+      gateway.preferred_solution = 'Sole'
     end
 
     xit "passes user details to PayPal" do
@@ -234,8 +232,8 @@ describe "PayPal", js: true do
 
   context "cannot process a payment with invalid gateway details" do
     before do
-      @gateway.preferred_login = nil
-      @gateway.save
+      gateway.preferred_login = nil
+      gateway.save
     end
 
     specify do
