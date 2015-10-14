@@ -2,19 +2,12 @@ describe "PayPal", :js => true do
   let!(:product) { FactoryGirl.create(:product, :name => 'iPad') }
 
   before do
-    @gateway = Spree::Gateway::PayPalExpress.create!({
-      preferred_login: "solidus-buyer_api1.example.com",
-      preferred_password: "57YMDWBYCDGS53QB",
-      preferred_signature: "AFcWxV21C7fd0v3bYYYRCpSSRl31AFPx.K2zvoXaQZLBnjHSCn0U9epw",
-      name: "PayPal",
-      active: true,
-      environment: Rails.env
-    })
+    @gateway = create(:spree_gateway_pay_pal_express)
     FactoryGirl.create(:shipping_method)
   end
 
   def fill_in_billing
-    fill_in "Customer E-Mail", with: "test@example.com"
+    fill_in "Customer E-Mail", with: "solidus-test@example.com"
     within("#billing") do
       fill_in "First Name", :with => "Test"
       fill_in "Last Name", :with => "User"
@@ -37,12 +30,9 @@ describe "PayPal", :js => true do
   end
 
   def login_to_paypal
-    iframe = find('iframe[name="injectedUl"]')
-    within_frame(iframe) do
-      fill_in "Email", with: "solidus-test@example.com"
-      fill_in "Password", with: "spree1234"
-      click_button "Log In"
-    end
+    fill_in "Email", with: "solidus-test@example.com"
+    fill_in "Password", with: "spree1234"
+    click_button "Log in to PayPal"
   end
 
   def within_transaction_cart(&block)
