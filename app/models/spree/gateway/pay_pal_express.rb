@@ -54,7 +54,6 @@ module Spree
     # https://developer.paypal.com/docs/classic/api/merchant/DoCapture_API_Operation_NVP/
     # for more information
     def capture(amount_cents, authorization, options = {})
-      # todo return some active merchant response
       response =
         provider.
         do_capture(
