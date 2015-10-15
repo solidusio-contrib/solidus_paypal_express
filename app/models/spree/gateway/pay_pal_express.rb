@@ -52,20 +52,26 @@ module Spree
 
     # https://developer.paypal.com/docs/classic/api/merchant/DoCapture_API_Operation_NVP/
     # for more information
-    def capture(amount_cents, authorization, options = {})
-      do_capture(amount_cents, authorization, options[:currency])
+    def capture(amount_cents, authorization, currency:, **_options)
+      do_capture(amount_cents, authorization, currency)
     end
 
-    def refund(payment, amount)
+    def credit(credit_cents, transaction_id, originator:, **_options)
+      payment = originator.payment
+      amount = credit_cents / 100.0
+
       refund_type = payment.amount == amount.to_f ? "Full" : "Partial"
+
       refund_transaction = provider.build_refund_transaction(
-        { TransactionID: payment.source.transaction_id,
+        { TransactionID: payment.transaction_id,
           RefundType: refund_type,
           Amount: {
             currencyID: payment.currency,
             value: amount },
           RefundSource: "any" })
+
       refund_transaction_response = provider.refund_transaction(refund_transaction)
+
       if refund_transaction_response.success?
         payment.source.update_attributes(
           { refunded_at: Time.now,
@@ -73,17 +79,11 @@ module Spree
             state: "refunded",
             refund_type: refund_type
         })
-
-        payment.class.create!(
-          order: payment.order,
-          source: payment,
-          payment_method: payment.payment_method,
-          amount: amount.to_f.abs * -1,
-          response_code: refund_transaction_response.RefundTransactionID,
-          state: 'completed'
-        )
       end
-      refund_transaction_response
+
+      build_response(
+        refund_transaction_response,
+        refund_transaction_response.refund_transaction_id)
     end
 
     def server_domain

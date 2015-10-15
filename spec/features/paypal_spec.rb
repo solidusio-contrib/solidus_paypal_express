@@ -37,6 +37,14 @@ describe "PayPal", js: true, type: :feature do
     new_payment.capture!
 
     expect(new_payment).to be_completed
+
+    expect {
+      new_payment.refunds.create(
+        refund_reason_id: create(:refund_reason).id,
+        amount: new_payment.amount)
+    }.to change {
+      new_payment.refunds.count
+    }.by(1)
   end
 
   context "with 'Sole' solution type" do
