@@ -130,13 +130,6 @@ module Spree
       response.do_capture_response_details.payment_info.transaction_id
     end
 
-    def error_message(response)
-      response.
-        errors.
-        map(&:long_message).
-        join(" ")
-    end
-
     # response ::
     #   PayPal::SDK::Merchant::DataTypes::DoExpressCheckoutPaymentResponseType
     def authorization_transaction_id(response)
@@ -150,7 +143,7 @@ module Spree
     def build_response(response, transaction_id)
       ActiveMerchant::Billing::Response.new(
         response.success?,
-        error_message(response),
+        JSON.pretty_generate(response.to_hash),
         response.to_hash,
         authorization: transaction_id,
         test: sandbox?)
