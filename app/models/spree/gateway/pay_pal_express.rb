@@ -40,8 +40,7 @@ module Spree
     # gateway_options :: hash
     def authorize(amount, express_checkout, gateway_options={})
       response =
-        convert_to_active_merchant_response(
-        paypal_auth(express_checkout.token, express_checkout.payer_id))
+        do_authorize(express_checkout.token, express_checkout.payer_id)
 
       # TODO don't do this, use authorization instead
       # this is a hold over from old code.
@@ -54,25 +53,7 @@ module Spree
     # https://developer.paypal.com/docs/classic/api/merchant/DoCapture_API_Operation_NVP/
     # for more information
     def capture(amount_cents, authorization, options = {})
-      response =
-        provider.
-        do_capture(
-          provider.build_do_capture(
-            amount: amount_cents / 100.0,
-            authorization_id: authorization,
-            completetype: "Complete",
-            currencycode: options[:currency]))
-
-      transaction_id =
-        response.do_capture_response_details.payment_info.transaction_id
-
-      ActiveMerchant::Billing::Response.new(
-        response.success?,
-        error_message(response),
-        response.to_hash,
-        authorization: transaction_id,
-        test: sandbox?
-      )
+      do_capture(amount_cents, authorization, options[:currency])
     end
 
     def refund(payment, amount)
@@ -123,14 +104,30 @@ module Spree
       encode_www_form(params)
     end
 
-    # response ::
-    #   PayPal::SDK::Merchant::DataTypes::DoExpressCheckoutPaymentResponseType
-    def transaction_id(response)
-      response.
-        do_express_checkout_payment_response_details.
-        payment_info.
-        first.
-        transaction_id
+    def do_authorize(token, payer_id)
+      response =
+        self.
+        provider.
+        do_express_checkout_payment(
+          checkout_payment_params(token, payer_id))
+
+      build_response(response, authorization_transaction_id(response))
+    end
+
+    def do_capture(amount_cents, authorization, currency)
+      response = provider.
+        do_capture(
+          provider.build_do_capture(
+            amount: amount_cents / 100.0,
+            authorization_id: authorization,
+            completetype: "Complete",
+            currencycode: options[:currency]))
+
+      build_response(response, capture_transaction_id(response))
+    end
+
+    def capture_transaction_id(response)
+      response.do_capture_response_details.payment_info.transaction_id
     end
 
     def error_message(response)
@@ -142,19 +139,21 @@ module Spree
 
     # response ::
     #   PayPal::SDK::Merchant::DataTypes::DoExpressCheckoutPaymentResponseType
-    def convert_to_active_merchant_response(response)
+    def authorization_transaction_id(response)
+      response.
+        do_express_checkout_payment_response_details.
+        payment_info.
+        first.
+        transaction_id
+    end
+
+    def build_response(response, transaction_id)
       ActiveMerchant::Billing::Response.new(
         response.success?,
         error_message(response),
         response.to_hash,
-        {authorization: transaction_id(response)})
-    end
-
-    def paypal_auth(token, payer_id)
-      self.
-        provider.
-        do_express_checkout_payment(
-          checkout_payment_params(token, payer_id))
+        authorization: transaction_id,
+        test: sandbox?)
     end
 
     def payment_details(token)
@@ -163,7 +162,7 @@ module Spree
         get_express_checkout_details(
           checkout_details_params(token)).
         get_express_checkout_details_response_details.
-        PaymentDetails
+        payment_details
     end
 
     def checkout_payment_params(token, payer_id)
