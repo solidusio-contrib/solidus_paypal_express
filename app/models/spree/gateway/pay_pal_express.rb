@@ -45,13 +45,35 @@ module Spree
 
       # TODO don't do this, use authorization instead
       # this is a hold over from old code.
+      # I don't think this actually even used by anything?
       express_checkout.update transaction_id: response.authorization
 
       response
     end
 
-    def capture(amount, express_checkout, gateway_options={})
-      raise NotImplementedError
+    # https://developer.paypal.com/docs/classic/api/merchant/DoCapture_API_Operation_NVP/
+    # for more information
+    def capture(amount_cents, authorization, options = {})
+      # todo return some active merchant response
+      response =
+        provider.
+        do_capture(
+          provider.build_do_capture(
+            amount: amount_cents / 100.0,
+            authorization_id: authorization,
+            completetype: "Complete",
+            currencycode: options[:currency]))
+
+      transaction_id =
+        response.do_capture_response_details.payment_info.transaction_id
+
+      ActiveMerchant::Billing::Response.new(
+        response.success?,
+        error_message(response),
+        response.to_hash,
+        authorization: transaction_id,
+        test: sandbox?
+      )
     end
 
     def refund(payment, amount)
@@ -112,19 +134,20 @@ module Spree
         transaction_id
     end
 
-    # response ::
-    #   PayPal::SDK::Merchant::DataTypes::DoExpressCheckoutPaymentResponseType
-    def convert_to_active_merchant_response(response)
-      message =
-        response.
+    def error_message(response)
+      response.
         errors.
         map(&:long_message).
         join(" ")
+    end
 
+    # response ::
+    #   PayPal::SDK::Merchant::DataTypes::DoExpressCheckoutPaymentResponseType
+    def convert_to_active_merchant_response(response)
       ActiveMerchant::Billing::Response.new(
         response.success?,
-        message,
-        {},
+        error_message(response),
+        response.to_hash,
         {authorization: transaction_id(response)})
     end
 
@@ -169,6 +192,10 @@ module Spree
           PaymentDetails: payment_details
         }
       }
+    end
+
+    def sandbox?
+      self.preferred_server == "sandbox"
     end
   end
 end

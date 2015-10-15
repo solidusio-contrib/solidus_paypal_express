@@ -33,6 +33,10 @@ describe "PayPal", js: true, type: :feature do
     expect(new_order).to be_complete
     expect(new_payment.transaction_id).to_not be_blank
     expect(new_payment).to be_pending
+
+    new_payment.capture!
+
+    expect(new_payment).to be_completed
   end
 
   context "with 'Sole' solution type" do
