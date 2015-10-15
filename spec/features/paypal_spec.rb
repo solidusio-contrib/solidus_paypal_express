@@ -70,11 +70,11 @@ describe "PayPal", js: true, type: :feature do
       login_to_paypal
       click_button "Pay Now"
 
-      page.should have_selector '[data-hook=order-bill-address] .fn', text: 'Test User'
-      page.should have_selector '[data-hook=order-bill-address] .adr', text: '1 User Lane'
-      page.should have_selector '[data-hook=order-bill-address] .adr', text: 'Adamsville AL 35005'
-      page.should have_selector '[data-hook=order-bill-address] .adr', text: 'United States'
-      page.should have_selector '[data-hook=order-bill-address] .tel', text: '555-123-4567'
+      expect(page).to have_selector '[data-hook=order-bill-address] .fn', text: 'Test User'
+      expect(page).to have_selector '[data-hook=order-bill-address] .adr', text: '1 User Lane'
+      expect(page).to have_selector '[data-hook=order-bill-address] .adr', text: 'Adamsville AL 35005'
+      expect(page).to have_selector '[data-hook=order-bill-address] .adr', text: 'United States'
+      expect(page).to have_selector '[data-hook=order-bill-address] .tel', text: '555-123-4567'
     end
   end
 
@@ -88,8 +88,8 @@ describe "PayPal", js: true, type: :feature do
     order.adjustments.create!(amount: 10, label: "$10 on")
     visit '/cart'
     within("#cart_adjustments") do
-      page.should have_content("$5 off")
-      page.should have_content("$10 on")
+      expect(page).to have_content("$5 off")
+      expect(page).to have_content("$10 on")
     end
     click_button 'Checkout'
     within("#guest_checkout") do
@@ -103,22 +103,22 @@ describe "PayPal", js: true, type: :feature do
     find("#paypal_button").click
 
     within_transaction_cart do
-      page.should have_content("$5 off")
-      page.should have_content("$10 on")
+      expect(page).to have_content("$5 off")
+      expect(page).to have_content("$10 on")
     end
 
     login_to_paypal
 
     within_transaction_cart do
-      page.should have_content("$5 off")
-      page.should have_content("$10 on")
+      expect(page).to have_content("$5 off")
+      expect(page).to have_content("$10 on")
     end
 
     click_button "Pay Now"
 
     within("[data-hook=order_details_adjustments]") do
-      page.should have_content("$5 off")
-      page.should have_content("$10 on")
+      expect(page).to have_content("$5 off")
+      expect(page).to have_content("$10 on")
     end
   end
 
@@ -136,11 +136,11 @@ describe "PayPal", js: true, type: :feature do
       click_button 'Add To Cart'
       # TODO: Is there a better way to find this current order?
       order = Spree::Order.last
-      order.line_item_adjustments.count.should == 1
+      expect(order.line_item_adjustments.count).to eq(1)
 
       visit '/cart'
       within("#cart_adjustments") do
-        page.should have_content("10% off")
+        expect(page).to have_content("10% off")
       end
       click_button 'Checkout'
       within("#guest_checkout") do
@@ -154,14 +154,14 @@ describe "PayPal", js: true, type: :feature do
       find("#paypal_button").click
 
       within_transaction_cart do
-        page.should have_content("10% off")
+        expect(page).to have_content("10% off")
       end
 
       login_to_paypal
       click_button "Pay Now"
 
       within("[data-hook=order_details_price_adjustments]") do
-        page.should have_content("10% off")
+        expect(page).to have_content("10% off")
       end
     end
   end
@@ -194,22 +194,22 @@ describe "PayPal", js: true, type: :feature do
       find("#paypal_button").click
 
       within_transaction_cart do
-        page.should have_content('iPad')
-        page.should_not have_content('iPod')
+        expect(page).to have_content('iPad')
+        expect(page).not_to have_content('iPod')
       end
 
       login_to_paypal
 
       within_transaction_cart do
-        page.should have_content('iPad')
-        page.should_not have_content('iPod')
+        expect(page).to have_content('iPad')
+        expect(page).not_to have_content('iPod')
       end
 
       click_button "Pay Now"
 
       within("#line-items") do
-        page.should have_content('iPad')
-        page.should have_content('iPod')
+        expect(page).to have_content('iPad')
+        expect(page).to have_content('iPod')
       end
     end
   end
@@ -245,7 +245,7 @@ describe "PayPal", js: true, type: :feature do
       click_button "Pay Now"
 
       within("[data-hook=order_details_adjustments]") do
-        page.should have_content('FREE iPad ZOMG!')
+        expect(page).to have_content('FREE iPad ZOMG!')
       end
     end
   end
@@ -266,7 +266,7 @@ describe "PayPal", js: true, type: :feature do
       # Delivery step doesn't require any action
       click_button "Save and Continue"
       find("#paypal_button").click
-      page.should have_content("PayPal failed. Security header is not valid")
+      expect(page).to have_content("PayPal failed. Security header is not valid")
     end
   end
 
@@ -291,7 +291,7 @@ describe "PayPal", js: true, type: :feature do
         switch_to_paypal_login
         login_to_paypal
         click_button("Pay Now")
-        page.should have_content("Your order has been processed successfully")
+        expect(page).to have_content("Your order has been processed successfully")
 
         visit '/admin'
         click_link Spree::Order.last.number
@@ -302,18 +302,18 @@ describe "PayPal", js: true, type: :feature do
 
       xit "can refund payments fully" do
         click_button "Refund"
-        page.should have_content("PayPal refund successful")
+        expect(page).to have_content("PayPal refund successful")
 
         payment = Spree::Payment.last
         paypal_checkout = payment.source.source
-        paypal_checkout.refund_transaction_id.should_not be_blank
-        paypal_checkout.refunded_at.should_not be_blank
-        paypal_checkout.state.should eql("refunded")
-        paypal_checkout.refund_type.should eql("Full")
+        expect(paypal_checkout.refund_transaction_id).not_to be_blank
+        expect(paypal_checkout.refunded_at).not_to be_blank
+        expect(paypal_checkout.state).to eql("refunded")
+        expect(paypal_checkout.refund_type).to eql("Full")
 
         # regression test for #82
         within("table") do
-          page.should have_content(payment.display_amount.to_html)
+          expect(page).to have_content(payment.display_amount.to_html)
         end
       end
 
@@ -322,20 +322,20 @@ describe "PayPal", js: true, type: :feature do
         # Take a dollar off, which should cause refund type to be...
         fill_in "Amount", with: payment.amount - 1
         click_button "Refund"
-        page.should have_content("PayPal refund successful")
+        expect(page).to have_content("PayPal refund successful")
 
         source = payment.source
-        source.refund_transaction_id.should_not be_blank
-        source.refunded_at.should_not be_blank
-        source.state.should eql("refunded")
+        expect(source.refund_transaction_id).not_to be_blank
+        expect(source.refunded_at).not_to be_blank
+        expect(source.state).to eql("refunded")
         # ... a partial refund
-        source.refund_type.should eql("Partial")
+        expect(source.refund_type).to eql("Partial")
       end
 
       xit "errors when given an invalid refund amount" do
         fill_in "Amount", with: "lol"
         click_button "Refund"
-        page.should have_content("PayPal refund unsuccessful (The partial refund amount is not valid)")
+        expect(page).to have_content("PayPal refund unsuccessful (The partial refund amount is not valid)")
       end
     end
   end
