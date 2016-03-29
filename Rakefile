@@ -1,8 +1,24 @@
-require 'rubygems'
-require 'rake'
-require 'rake/testtask'
-require 'rake/packagetask'
-require 'rubygems/package_task'
+require 'bundler'
+
+Bundler::GemHelper.install_tasks
+
+begin
+  require 'spree/testing_support/extension_rake'
+  require 'rspec/core/rake_task'
+
+  RSpec::Core::RakeTask.new(:spec)
+
+  task default: %i(first_run spec)
+rescue LoadError
+  # no rspec available
+end
+
+task :first_run do
+  if Dir['spec/dummy'].empty?
+    Rake::Task[:test_app].invoke
+    Dir.chdir('../../')
+  end
+end
 
 desc 'Generates a dummy app for testing'
 task :test_app do
@@ -10,20 +26,3 @@ task :test_app do
   Rake::Task['extension:test_app'].invoke
 end
 
-require 'rspec/core'
-require 'rspec/core/rake_task'
-require 'spree/testing_support/extension_rake'
-
-RSpec::Core::RakeTask.new(:spec) do |t|
-  t.fail_on_error = false
-end
-
-desc "Run RSpec with code coverage"
-task :coverage do
-  ENV['COVERAGE'] = 'true'
-  Rake::Task["spec"].execute
-end
-task default: 'rspec'
-
-
-Bundler::GemHelper.install_tasks
