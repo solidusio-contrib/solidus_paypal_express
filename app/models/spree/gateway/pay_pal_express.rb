@@ -101,7 +101,7 @@ module Spree
         "https://www.#{server_domain}paypal.com/cgi-bin/webscr?" +
           "cmd=_express-checkout&force_sa=true&"
       end +
-      encode_www_form(params)
+      URI.encode_www_form(params)
     end
 
     def do_authorize(token, payer_id)
