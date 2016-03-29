@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'database_cleaner', '1.0.1'
   s.add_development_dependency 'factory_girl', '~> 4.2'
   s.add_development_dependency 'ffaker'
+  s.add_development_dependency 'rspec-activemodel-mocks'
   s.add_development_dependency 'rspec-rails', "~> 3.3"
   s.add_development_dependency 'sass-rails', '~> 4.0.2'
   s.add_development_dependency 'selenium-webdriver'
