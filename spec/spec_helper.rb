@@ -37,6 +37,10 @@ require 'sass'
 
 
 require 'capybara/poltergeist'
+Capybara.register_driver :poltergeist do |app|
+  # Required to visit https://www.sandbox.paypal.com
+  Capybara::Poltergeist::Driver.new(app, phantomjs_options: %w[--ssl-protocol=any --ignore-ssl-errors=true])
+end
 
 Capybara.javascript_driver = :poltergeist
 Capybara.default_wait_time = 15
