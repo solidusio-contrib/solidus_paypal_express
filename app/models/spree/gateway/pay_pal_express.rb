@@ -101,7 +101,7 @@ module Spree
         "https://www.#{server_domain}paypal.com/cgi-bin/webscr?" +
           "cmd=_express-checkout&force_sa=true&"
       end +
-      encode_www_form(params)
+      URI.encode_www_form(params)
     end
 
     def do_authorize(token, payer_id)
@@ -120,7 +120,7 @@ module Spree
           provider.build_do_capture(
             amount: amount_cents / 100.0,
             authorization_id: authorization,
-            completetype: "Complete",
+            complete_type: "Complete",
             currencycode: options[:currency]))
 
       build_response(response, capture_transaction_id(response))
@@ -155,7 +155,7 @@ module Spree
         get_express_checkout_details(
           checkout_details_params(token)).
         get_express_checkout_details_response_details.
-        payment_details
+        PaymentDetails
     end
 
     def checkout_payment_params(token, payer_id)

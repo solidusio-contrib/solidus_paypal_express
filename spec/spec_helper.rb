@@ -20,6 +20,7 @@ ENV['RAILS_ENV'] = 'test'
 require File.expand_path('../dummy/config/environment.rb',  __FILE__)
 
 require 'rspec/rails'
+require 'rspec/active_model/mocks'
 require 'database_cleaner'
 require 'ffaker'
 require 'pry'
@@ -36,9 +37,13 @@ require 'sass'
 
 
 require 'capybara/poltergeist'
+Capybara.register_driver :poltergeist do |app|
+  # Required to visit https://www.sandbox.paypal.com
+  Capybara::Poltergeist::Driver.new(app, phantomjs_options: %w[--ssl-protocol=any --ignore-ssl-errors=true])
+end
 
 Capybara.javascript_driver = :poltergeist
-Capybara.default_wait_time = 15
+Capybara.default_max_wait_time = ENV['DEFAULT_MAX_WAIT_TIME'].to_f if ENV['DEFAULT_MAX_WAIT_TIME'].present?
 
 Dir[File.join(File.dirname(__FILE__), 'support/**/*.rb')].each { |f| require f }
 
