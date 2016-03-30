@@ -6,4 +6,4 @@ env:
   - SOLIDUS_BRANCH=v1.0   DB=mysql
   - SOLIDUS_BRANCH=v1.0   DB=postgres
 rvm:
-  - 2.1.8
+  - 2.3.0
