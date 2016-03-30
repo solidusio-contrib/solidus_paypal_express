@@ -2,6 +2,9 @@ language: ruby
 sudo: false
 cache: bundler
 language: ruby
+before_install:
+  - mkdir -p "$HOME/bin" && curl -o "$HOME/bin/phantomjs" https://s3.amazonaws.com/circle-downloads/phantomjs-2.1.1 && chmod +x "$HOME/bin/phantomjs"
+  - export PATH="$HOME/bin:$PATH"
 env:
   - SOLIDUS_BRANCH=v1.0   DB=mysql
   - SOLIDUS_BRANCH=v1.0   DB=postgres
