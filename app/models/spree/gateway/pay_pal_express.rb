@@ -120,7 +120,7 @@ module Spree
           provider.build_do_capture(
             amount: amount_cents / 100.0,
             authorization_id: authorization,
-            completetype: "Complete",
+            complete_type: "Complete",
             currencycode: options[:currency]))
 
       build_response(response, capture_transaction_id(response))
