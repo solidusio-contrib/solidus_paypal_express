@@ -155,7 +155,7 @@ module Spree
         get_express_checkout_details(
           checkout_details_params(token)).
         get_express_checkout_details_response_details.
-        payment_details
+        PaymentDetails
     end
 
     def checkout_payment_params(token, payer_id)
