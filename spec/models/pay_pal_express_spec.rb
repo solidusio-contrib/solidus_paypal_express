@@ -48,6 +48,7 @@ describe Spree::Gateway::PayPalExpress do
       response = double(
         'pp_response',
         success?: true,
+        to_hash: {},
         errors: []
       )
       allow(response).
@@ -64,6 +65,7 @@ describe Spree::Gateway::PayPalExpress do
       response = double(
         'pp_response',
         success?: false,
+        to_hash: {},
         errors: [
           double('pp_response_error', long_message: "An error goes here.")])
 
@@ -73,7 +75,7 @@ describe Spree::Gateway::PayPalExpress do
       expect(provider).to receive(:do_express_checkout_payment).and_return(response)
 
       expect { payment.authorize! }.
-        to raise_error(Spree::Core::GatewayError, "An error goes here.")
+        to raise_error(Spree::Core::GatewayError)
     end
   end
 end
