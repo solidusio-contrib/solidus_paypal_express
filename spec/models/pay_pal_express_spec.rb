@@ -56,7 +56,7 @@ describe Spree::Gateway::PayPalExpress do
         to receive(:do_express_checkout_payment).
         and_return(response)
 
-      expect { payment.authorize! }.to_not raise_error
+      payment.authorize!
     end
 
     # Test for #4
