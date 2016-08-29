@@ -4,6 +4,7 @@ describe "PayPal", js: true, type: :feature do
   let!(:shipping_method) { create(:shipping_method) }
   let(:new_payment) { Spree::Payment.last }
   let(:new_order) { Spree::Order.last }
+  let!(:store) { create(:store) }
 
   before { expire_cookies }
 
