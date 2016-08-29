@@ -7,6 +7,5 @@ FactoryGirl.define do
     preferred_use_new_layout true
     name "PayPal"
     active true
-    environment { Rails.env }
   end
 end
