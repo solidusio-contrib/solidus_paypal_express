@@ -1,3 +1,5 @@
+> This project is unmaintained doesn't work with the latest versions of Solidus or `paypal-sdk-merchant`. We recommend using [solidus_braintree](https://github.com/solidusio/solidus_braintree) (which has paypal support) instead.
+
 # Spree PayPal Express
 
 [![Build Status](https://travis-ci.org/solidusio-contrib/solidus_paypal_express.svg?branch=master)](https://travis-ci.org/spree-contrib/better_spree_paypal_express)
