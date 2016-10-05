@@ -28,11 +28,36 @@ module Spree
     end
 
     def auto_capture?
-      false
+      true
     end
 
     def method_type
       'paypal'
+    end
+
+    def purchase(amount, express_checkout, gateway_options={})
+      details_request = provider.build_get_express_checkout_details({
+        :Token => express_checkout.token
+      })
+      details_response = provider.get_express_checkout_details(details_request)
+
+      request = provider.build_do_express_checkout_payment(
+        :DoExpressCheckoutPaymentRequestDetails => {
+          :PaymentAction => "Sale",
+          :Token => express_checkout.token,
+          :PayerID => express_checkout.payer_id,
+          :PaymentDetails => details_response.get_express_checkout_details_response_details.PaymentDetails,
+        },
+      )
+
+      response = provider.do_express_checkout_payment(request)
+      transaction_id = purchase_transaction_id(response)
+
+      if response.success?
+        express_checkout.update!(transaction_id: transaction_id)
+      end
+
+      build_response(response, transaction_id)
     end
 
     # amount :: float
@@ -133,6 +158,14 @@ module Spree
     # response ::
     #   PayPal::SDK::Merchant::DataTypes::DoExpressCheckoutPaymentResponseType
     def authorization_transaction_id(response)
+      response.
+        do_express_checkout_payment_response_details.
+        payment_info.
+        first.
+        transaction_id
+    end
+
+    def purchase_transaction_id(response)
       response.
         do_express_checkout_payment_response_details.
         payment_info.

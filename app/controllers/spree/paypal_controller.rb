@@ -156,7 +156,7 @@ module Spree
           ShipToAddress: address_options,
           PaymentDetailsItem: items,
           ShippingMethod: "Shipping Method Name Goes Here",
-          PaymentAction: "Authorization"
+          PaymentAction: "Sale"
         }
       end
     end
