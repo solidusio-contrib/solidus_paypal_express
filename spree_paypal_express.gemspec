@@ -22,12 +22,12 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.requirements << 'none'
 
-  s.add_dependency "solidus_core", "~> 1.0"
+  s.add_dependency "solidus_core", ">= 1.0", "< 2.1"
   s.add_dependency 'paypal-sdk-merchant', '1.117.2'
 
-  s.add_development_dependency "solidus", "~> 1.0"
-  s.add_development_dependency "solidus_auth_devise", "~> 1.2"
-  s.add_development_dependency "solidus_sample", "~> 1.0"
+  s.add_development_dependency "solidus"
+  s.add_development_dependency "solidus_auth_devise"
+  s.add_development_dependency "solidus_sample"
 
   s.add_development_dependency 'coffee-rails'
   s.add_development_dependency 'show_me_the_cookies', '~> 3.0.0'
@@ -36,7 +36,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'factory_girl', '~> 4.2'
   s.add_development_dependency 'ffaker'
   s.add_development_dependency 'rspec-activemodel-mocks'
-  s.add_development_dependency 'rspec-rails', "~> 3.3"
+  s.add_development_dependency 'rspec-rails'
   s.add_development_dependency 'sass-rails'
   s.add_development_dependency 'selenium-webdriver'
   s.add_development_dependency 'simplecov'
