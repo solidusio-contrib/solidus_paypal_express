@@ -51,13 +51,14 @@ module Spree
       )
 
       response = provider.do_express_checkout_payment(request)
-      transaction_id = purchase_transaction_id(response)
 
       if response.success?
+        transaction_id = purchase_transaction_id(response)
         express_checkout.update!(transaction_id: transaction_id)
+        build_response(response, transaction_id)
+      else
+        build_response(response, nil)
       end
-
-      build_response(response, transaction_id)
     end
 
     # amount :: float
