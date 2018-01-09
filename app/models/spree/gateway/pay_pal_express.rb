@@ -31,7 +31,7 @@ module Spree
       true
     end
 
-    def method_type
+    def partial_name
       'paypal'
     end
 
