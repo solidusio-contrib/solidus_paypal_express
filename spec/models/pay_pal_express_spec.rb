@@ -3,7 +3,7 @@ describe Spree::Gateway::PayPalExpress do
 
   context "payment purchase" do
     let(:payment) do
-      payment = FactoryGirl.create(:payment, payment_method: payment_method, amount: 10)
+      payment = create(:payment, payment_method: payment_method, amount: 10)
       allow(payment).to receive_messages source: mock_model(Spree::PaypalExpressCheckout, token: 'fake_token', payer_id: 'fake_payer_id', update: true)
       payment
     end

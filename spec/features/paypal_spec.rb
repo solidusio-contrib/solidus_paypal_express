@@ -1,5 +1,5 @@
 describe "PayPal", js: true, type: :feature do
-  let!(:product) { FactoryGirl.create(:product, name: 'iPad') }
+  let!(:product) { create(:product, name: 'iPad') }
   let!(:gateway) { create(:spree_gateway_pay_pal_express) }
   let!(:shipping_method) { create(:shipping_method) }
   let(:new_payment) { Spree::Payment.last }
@@ -170,7 +170,7 @@ describe "PayPal", js: true, type: :feature do
 
   # Regression test for #10
   context "will skip $0 items" do
-    let!(:product2) { FactoryGirl.create(:product, name: 'iPod') }
+    let!(:product2) { create(:product, name: 'iPod') }
 
     xit do
       visit spree.root_path
