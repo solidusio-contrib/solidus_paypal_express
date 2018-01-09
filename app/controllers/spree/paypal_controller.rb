@@ -29,10 +29,10 @@ module Spree
       items.reject! do |item|
         item[:Amount][:value].zero?
       end
-      pp_request = provider.build_set_express_checkout(express_checkout_request_details(order, items))
+      pp_request = gateway.build_set_express_checkout(express_checkout_request_details(order, items))
 
       begin
-        pp_response = provider.set_express_checkout(pp_request)
+        pp_response = gateway.set_express_checkout(pp_request)
         if pp_response.success?
           redirect_to payment_method.
             express_checkout_url(pp_response, useraction: 'commit')
@@ -113,8 +113,8 @@ module Spree
       Spree::PaymentMethod.find(params[:payment_method_id])
     end
 
-    def provider
-      payment_method.provider
+    def gateway
+      payment_method.gateway
     end
 
     def payment_details items
