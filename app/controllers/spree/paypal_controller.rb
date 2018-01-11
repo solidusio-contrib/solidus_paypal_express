@@ -120,7 +120,7 @@ module Spree
     def payment_details items
       # This retrieves the cost of shipping after promotions are applied
       # For example, if shippng costs $10, and is free with a promotion, shipment_sum is now $10
-      shipment_sum = current_order.shipments.map(&:discounted_cost).sum
+      shipment_sum = current_order.shipments.map(&:final_amount_without_additional_tax).sum
 
       # This calculates the item sum based upon what is in the order total, but not for shipping
       # or tax.  This is the easiest way to determine what the items should cost, as that
