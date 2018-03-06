@@ -13,6 +13,12 @@ group :test do
   gem 'poltergeist'
 end
 
-gem 'rubocop'
+group :test, :development do
+  gem 'rubocop'
+
+  platforms :mri do
+    gem 'byebug'
+  end
+end
 
 gemspec
