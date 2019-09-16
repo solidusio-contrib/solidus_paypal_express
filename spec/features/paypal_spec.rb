@@ -1,9 +1,10 @@
 describe "PayPal", js: true, type: :feature do
-  let!(:product) { FactoryGirl.create(:product, name: 'iPad') }
+  let!(:product) { create(:product, name: 'iPad') }
   let!(:gateway) { create(:spree_gateway_pay_pal_express) }
   let!(:shipping_method) { create(:shipping_method) }
   let(:new_payment) { Spree::Payment.last }
   let(:new_order) { Spree::Order.last }
+  let!(:store) { create(:store) }
 
   before { expire_cookies }
 
@@ -22,6 +23,7 @@ describe "PayPal", js: true, type: :feature do
     login_to_paypal
 
     has_selector?(".preloader .spinner", visible: false)
+    sleep 5 # TODO: Get rid of this sleep and find things the right way
     click_button "Pay Now", match: :first
 
     expect {
@@ -168,7 +170,7 @@ describe "PayPal", js: true, type: :feature do
 
   # Regression test for #10
   context "will skip $0 items" do
-    let!(:product2) { FactoryGirl.create(:product, name: 'iPod') }
+    let!(:product2) { create(:product, name: 'iPod') }
 
     xit do
       visit spree.root_path
@@ -364,9 +366,12 @@ describe "PayPal", js: true, type: :feature do
   end
 
   def login_to_paypal
-    fill_in "Email", with: "solidus-test@example.com"
-    fill_in "Password", with: "spree1234"
-    click_button "Log in to PayPal"
+    iframe = find('iframe[name="injectedUl"]')
+    within_frame(iframe) do
+      fill_in "Email", with: "solidus-test@example.com"
+      fill_in "Password", with: "spree1234"
+      click_button "Log In"
+    end
   end
 
   def within_transaction_cart(&block)

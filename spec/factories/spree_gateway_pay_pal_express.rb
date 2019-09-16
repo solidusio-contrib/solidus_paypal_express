@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :spree_gateway_pay_pal_express,
           class: "Spree::Gateway::PayPalExpress" do
     preferred_login "solidus-buyer_api1.example.com"
@@ -7,6 +7,5 @@ FactoryGirl.define do
     preferred_use_new_layout true
     name "PayPal"
     active true
-    environment { Rails.env }
   end
 end

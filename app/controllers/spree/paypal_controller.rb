@@ -29,10 +29,10 @@ module Spree
       items.reject! do |item|
         item[:Amount][:value].zero?
       end
-      pp_request = provider.build_set_express_checkout(express_checkout_request_details(order, items))
+      pp_request = gateway.build_set_express_checkout(express_checkout_request_details(order, items))
 
       begin
-        pp_response = provider.set_express_checkout(pp_request)
+        pp_response = gateway.set_express_checkout(pp_request)
         if pp_response.success?
           redirect_to payment_method.
             express_checkout_url(pp_response, useraction: 'commit')
@@ -58,11 +58,12 @@ module Spree
               payer_id: params[:PayerID]
             }
           ),
-          amount: order.total,
+          amount: order.outstanding_balance,
           payment_method: payment_method
         }
       )
-      order.next
+      order.contents.advance
+      order.complete if order.can_complete?
       if order.complete?
         flash.notice = Spree.t(:order_processed_successfully)
         flash[:order_completed] = true
@@ -112,19 +113,19 @@ module Spree
       Spree::PaymentMethod.find(params[:payment_method_id])
     end
 
-    def provider
-      payment_method.provider
+    def gateway
+      payment_method.gateway
     end
 
     def payment_details items
       # This retrieves the cost of shipping after promotions are applied
       # For example, if shippng costs $10, and is free with a promotion, shipment_sum is now $10
-      shipment_sum = current_order.shipments.map(&:discounted_cost).sum
+      shipment_sum = current_order.shipments.map(&:final_amount_without_additional_tax).sum
 
       # This calculates the item sum based upon what is in the order total, but not for shipping
       # or tax.  This is the easiest way to determine what the items should cost, as that
       # functionality doesn't currently exist in Spree core
-      item_sum = current_order.total - shipment_sum - current_order.additional_tax_total
+      item_sum = current_order.outstanding_balance - shipment_sum - current_order.additional_tax_total
 
       if item_sum.zero?
         # Paypal does not support no items or a zero dollar ItemTotal
@@ -139,7 +140,7 @@ module Spree
         {
           OrderTotal: {
             currencyID: current_order.currency,
-            value: current_order.total
+            value: current_order.outstanding_balance
           },
           ItemTotal: {
             currencyID: current_order.currency,
@@ -156,7 +157,7 @@ module Spree
           ShipToAddress: address_options,
           PaymentDetailsItem: items,
           ShippingMethod: "Shipping Method Name Goes Here",
-          PaymentAction: "Authorization"
+          PaymentAction: "Sale"
         }
       end
     end

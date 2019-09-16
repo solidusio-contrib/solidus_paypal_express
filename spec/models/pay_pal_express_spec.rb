@@ -1,21 +1,21 @@
 describe Spree::Gateway::PayPalExpress do
-  let(:gateway) { Spree::Gateway::PayPalExpress.create!(name: "PayPalExpress", environment: Rails.env) }
+  let(:payment_method) { Spree::Gateway::PayPalExpress.create!(name: "PayPalExpress") }
 
   context "payment purchase" do
     let(:payment) do
-      payment = FactoryGirl.create(:payment, payment_method: gateway, amount: 10)
+      payment = create(:payment, payment_method: payment_method, amount: 10)
       allow(payment).to receive_messages source: mock_model(Spree::PaypalExpressCheckout, token: 'fake_token', payer_id: 'fake_payer_id', update: true)
       payment
     end
 
-    let(:provider) do
-      provider = double('Provider')
-      allow(gateway).to receive_messages(provider: provider)
-      provider
+    let(:gateway) do
+      gateway = double('gateway')
+      allow(payment_method).to receive_messages(gateway: gateway)
+      gateway
     end
 
     before do
-      expect(provider).
+      expect(gateway).
         to receive(:build_get_express_checkout_details).
         with({Token: 'fake_token'}).
         and_return(pp_details_request = double)
@@ -28,11 +28,11 @@ describe Spree::Gateway::PayPalExpress do
               value: "10.00"
             }}))
 
-      expect(provider).to receive(:get_express_checkout_details).
+      expect(gateway).to receive(:get_express_checkout_details).
         with(pp_details_request).
         and_return(pp_details_response)
 
-      expect(provider).
+      expect(gateway).
         to receive(:build_do_express_checkout_payment).
         with(
           { DoExpressCheckoutPaymentRequestDetails: {
@@ -53,7 +53,7 @@ describe Spree::Gateway::PayPalExpress do
       )
       allow(response).
         to receive_message_chain("do_express_checkout_payment_response_details.payment_info.first.transaction_id").and_return '12345'
-      expect(provider).
+      expect(gateway).
         to receive(:do_express_checkout_payment).
         and_return(response)
 
@@ -72,7 +72,7 @@ describe Spree::Gateway::PayPalExpress do
       allow(response).
         to receive_message_chain("do_express_checkout_payment_response_details.payment_info.first.transaction_id").and_return '12345'
 
-      expect(provider).to receive(:do_express_checkout_payment).and_return(response)
+      expect(gateway).to receive(:do_express_checkout_payment).and_return(response)
 
       expect { payment.authorize! }.
         to raise_error(Spree::Core::GatewayError)

@@ -1,6 +1,6 @@
 require 'paypal-sdk-merchant'
 module Spree
-  class Gateway::PayPalExpress < Gateway
+  class Gateway::PayPalExpress < Spree::PaymentMethod
     preference :use_new_layout, :boolean, default: true
     preference :login, :string
     preference :password, :string
@@ -14,25 +14,51 @@ module Spree
       true
     end
 
-    def provider_class
+    def gateway_class
       ::PayPal::SDK::Merchant::API
     end
 
-    def provider
+    def gateway
       ::PayPal::SDK.configure(
         mode: preferred_server.present? ? preferred_server : "sandbox",
         username: preferred_login,
         password: preferred_password,
         signature: preferred_signature)
-      provider_class.new
+      gateway_class.new
     end
 
     def auto_capture?
-      false
+      true
     end
 
-    def method_type
+    def partial_name
       'paypal'
+    end
+
+    def purchase(amount, express_checkout, gateway_options={})
+      details_request = gateway.build_get_express_checkout_details({
+        :Token => express_checkout.token
+      })
+      details_response = gateway.get_express_checkout_details(details_request)
+
+      request = gateway.build_do_express_checkout_payment(
+        :DoExpressCheckoutPaymentRequestDetails => {
+          :PaymentAction => "Sale",
+          :Token => express_checkout.token,
+          :PayerID => express_checkout.payer_id,
+          :PaymentDetails => details_response.get_express_checkout_details_response_details.PaymentDetails,
+        },
+      )
+
+      response = gateway.do_express_checkout_payment(request)
+
+      if response.success?
+        transaction_id = purchase_transaction_id(response)
+        express_checkout.update!(transaction_id: transaction_id)
+        build_response(response, transaction_id)
+      else
+        build_response(response, nil)
+      end
     end
 
     # amount :: float
@@ -62,7 +88,7 @@ module Spree
 
       refund_type = payment.amount == amount.to_f ? "Full" : "Partial"
 
-      refund_transaction = provider.build_refund_transaction(
+      refund_transaction = gateway.build_refund_transaction(
         { TransactionID: payment.transaction_id,
           RefundType: refund_type,
           Amount: {
@@ -70,7 +96,7 @@ module Spree
             value: amount },
           RefundSource: "any" })
 
-      refund_transaction_response = provider.refund_transaction(refund_transaction)
+      refund_transaction_response = gateway.refund_transaction(refund_transaction)
 
       if refund_transaction_response.success?
         payment.source.update_attributes(
@@ -105,23 +131,22 @@ module Spree
     end
 
     def do_authorize(token, payer_id)
-      response =
-        self.
-        provider.
-        do_express_checkout_payment(
-          checkout_payment_params(token, payer_id))
+      response = gateway.do_express_checkout_payment(
+        checkout_payment_params(token, payer_id)
+      )
 
       build_response(response, authorization_transaction_id(response))
     end
 
     def do_capture(amount_cents, authorization, currency)
-      response = provider.
-        do_capture(
-          provider.build_do_capture(
-            amount: amount_cents / 100.0,
-            authorization_id: authorization,
-            complete_type: "Complete",
-            currencycode: options[:currency]))
+      response = gateway.do_capture(
+        gateway.build_do_capture(
+          amount: amount_cents / 100.0,
+          authorization_id: authorization,
+          complete_type: "Complete",
+          currencycode: options[:currency],
+        )
+      )
 
       build_response(response, capture_transaction_id(response))
     end
@@ -140,6 +165,14 @@ module Spree
         transaction_id
     end
 
+    def purchase_transaction_id(response)
+      response.
+        do_express_checkout_payment_response_details.
+        payment_info.
+        first.
+        transaction_id
+    end
+
     def build_response(response, transaction_id)
       ActiveMerchant::Billing::Response.new(
         response.success?,
@@ -150,8 +183,7 @@ module Spree
     end
 
     def payment_details(token)
-      self.
-        provider.
+      gateway.
         get_express_checkout_details(
           checkout_details_params(token)).
         get_express_checkout_details_response_details.
@@ -159,8 +191,7 @@ module Spree
     end
 
     def checkout_payment_params(token, payer_id)
-      self.
-        provider.
+      gateway.
         build_do_express_checkout_payment(
           build_checkout_payment_params(
             token,
@@ -169,8 +200,7 @@ module Spree
     end
 
     def checkout_details_params(token)
-      self.
-        provider.
+      gateway.
         build_get_express_checkout_details(Token: token)
     end
 
